@@ -172,12 +172,13 @@ namespace ImportFormulary.Actors
                 // shut down the entire actor system via the ActorContext
                 // causes MyActorSystem.AwaitTermination(); to stop blocking the current thread
                 // and allows the application to exit.
-                Context.System.Shutdown();
+                
+                CoordinatedShutdown.Get(Context.System).Run();
                 return;
             }
 
             //Tell the FeedValidatorActor that we're ready to party
-            Context.ActorSelection(ActorNames.DirectoryValidatorActor.Path).Tell(new DirectoryValidatorActor.ValidateDirectory( read));
+            Context.ActorSelection(ActorNames.DirectoryCrawlerActor.Path).Tell(new DirectoryCrawlerActor.BeginDirectoryCrawl( read));
         }
     }
 }

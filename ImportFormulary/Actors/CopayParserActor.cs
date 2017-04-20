@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,22 +44,41 @@ namespace ImportFormulary.Actors
             //time to kick off the feed parsing process, and send the results to ourselves
             Receive<ParseFile>(processFile =>
             {
-                Context.ActorOf(Props.Create(() => new CopayLoadActor())).Tell(new CopayLoadActor.LoadCopay(""));
 
-                SendMessage("Copay parser");
+                var sendMsgActor = Context.ActorSelection(_consoleWriterActorPath);
+                SendMessage(sendMsgActor, "Copay parser" + processFile.FileName);
+                var copayLoadActor = Context.ActorOf(Props.Create(() => new CopayLoadActor()));
+                using (var filestream = File.Open(processFile.FileName, FileMode.Open))
+                using (var reader = new StreamReader(filestream))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+
+                        copayLoadActor.Tell(new CopayLoadActor.LoadCopay(line));
+                    }
+                }
+
+            //var source = FileStreamProcessor.GetFileSource(processFile.FileName)
+            //                                .Subscribe(x => {
+            //                                    copayLoadActor.Tell(new CopayLoadActor.LoadCopay(x));
+            //                                });
+
+
+
             });
         }
 
 
         #region Messaging methods
 
-        private void SendMessage(string message, PipeToSampleStatusCode pipeToSampleStatus = PipeToSampleStatusCode.Normal)
+        private void SendMessage(ActorSelection sendMsgActor, string message, PipeToSampleStatusCode pipeToSampleStatus = PipeToSampleStatusCode.Normal)
         {
             //create the message instance
             var consoleMsg = StatusMessageHelper.CreateMessage(message, pipeToSampleStatus);
 
             //Select the ConsoleWriterActor and send it a message
-            Context.ActorSelection(_consoleWriterActorPath).Tell(consoleMsg);
+            sendMsgActor.Tell(consoleMsg);
         }
 
         #endregion

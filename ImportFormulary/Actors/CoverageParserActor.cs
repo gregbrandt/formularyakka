@@ -45,7 +45,7 @@ namespace ImportFormulary.Actors
             Receive<ParseFile>(processFile =>
             {
                 Context.ActorOf(Props.Create(() => new CoverageLoadActor())).Tell(new CoverageLoadActor.LoadCoverage(""));
-                SendMessage("Coverage Parser");
+                SendMessage("Coverage Parser" + processFile.FileName);
 
             });
         }

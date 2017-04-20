@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,13 +47,19 @@ namespace ImportFormulary.Actors
             //time to kick off the feed parsing process, and send the results to ourselves
             Receive<ProcessFile>(processFile =>
             {
-                //_copayParserActor.Tell(new CopayParserActor.ParseFile(""));
-                //_coverageParserActor.Tell(new CoverageParserActor.ParseFile(""));
+                if (File.Exists(processFile.FileName))
+                {
+                    var dirParts = Path.GetDirectoryName(processFile.FileName).Split(Path.DirectorySeparatorChar);
+                    if (dirParts.Contains("COV"))
+                    {
+                        Context.ActorOf(Props.Create(() => new CoverageParserActor())).Tell(new CoverageParserActor.ParseFile(processFile.FileName));
 
-                Context.ActorOf(Props.Create(() => new CopayParserActor())).Tell(new CopayParserActor.ParseFile(""));
-                Context.ActorOf(Props.Create(() => new CoverageParserActor())).Tell(new CoverageParserActor.ParseFile(""));
-                //Context.Parent.Tell(
-                //    new DirectoryCrawler.FileProcessComplete(imagedownload.ImageDownloadCommand.FeedUri, 0, 1));
+                    }
+                    else if (dirParts.Contains("COP"))
+                    {
+                        Context.ActorOf(Props.Create(() => new CopayParserActor())).Tell(new CopayParserActor.ParseFile(processFile.FileName));
+                    }
+                }
                 SendMessage("File Process");
             });
         }

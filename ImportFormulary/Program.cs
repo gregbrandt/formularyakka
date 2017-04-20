@@ -18,9 +18,9 @@ namespace ImportFormulary
 
             //Create the actors who are going to validate RSS / ATOM feeds and start the parsing process
             IActorRef feedValidator =
-                MyActorSystem.ActorOf(Props.Create(() => new DirectoryValidatorActor( ActorNames.ConsoleWriterActor.Path)),
-                    ActorNames.DirectoryValidatorActor.Name);
-           
+                MyActorSystem.ActorOf(Props.Create(() => new DirectoryCrawlerActor(ActorNames.ConsoleWriterActor.Path)),
+                    ActorNames.DirectoryCrawlerActor.Name);
+
 
 
             //Create the actors who are going to read from and write to the console
@@ -35,7 +35,9 @@ namespace ImportFormulary
             // This blocks the current thread from exiting until MyActorSystem is shut down
             // The ConsoleReaderActor will shut down the ActorSystem once it receives an 
             // "exit" command from the user
-            MyActorSystem.AwaitTermination();
+            MyActorSystem.WhenTerminated.Wait();
+            
+            
         }
     }
 }

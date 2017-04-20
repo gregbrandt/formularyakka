@@ -22,7 +22,7 @@ namespace ImportFormulary
         /// <summary>
         /// Responsible for validating data from <see cref="ConsoleReaderActor"/> and kicking off the feed parsing process
         /// </summary>
-		public static readonly ActorData DirectoryValidatorActor = new ActorData("directoryValidator", "akka://MyFirstActorSystem/user"); // /user/feedValidator
+		public static readonly ActorData DirectoryCrawlerActor = new ActorData("directoryCrawler", "akka://MyFirstActorSystem/user"); // /user/feedValidator
     }
 
     /// <summary>

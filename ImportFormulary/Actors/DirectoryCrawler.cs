@@ -45,23 +45,38 @@ namespace ImportFormulary.Actors
             //time to kick off the feed parsing process, and send the results to ourselves
             Receive<BeginDirectoryCrawl>(beginDirectoryCrawl =>
             {
-                //if (Directory.Exists(beginDirectoryCrawl.Directory))
-                //{
+                if (Directory.Exists(beginDirectoryCrawl.Directory))
+                {
 
-                //}
-                //else
-                //{
-                //    SendMessage(string.Format("Downloading {0} for RSS/ATOM processing...", feed.FeedUri));
-                //    _feedFactory.CreateFeedAsync(feed.FeedUri).PipeTo(Self);
-                //}
+                    SendMessage("Directory crawl");
+                    ProcessDirectory(beginDirectoryCrawl.Directory);
+
+                }
+                else
+                {
+                    SendMessage("Invalid directory " + beginDirectoryCrawl.Directory);
+                }
                 
-                Context.ActorOf(Props.Create(() => new FileProcessorActor())).Tell(new FileProcessorActor.ProcessFile(beginDirectoryCrawl.Directory));
-
-                SendMessage("Directory crawl");
-
                 Context.Self.Tell(PoisonPill.Instance);
 
             });
+        }
+
+        private static void ProcessDirectory(string directory)
+        {
+            foreach (var file in Directory.GetFiles(directory))
+            {
+                ProcessFile(file);
+            }
+            foreach (var childDirectory in Directory.GetDirectories(directory))
+            {
+                ProcessDirectory(childDirectory);
+            }
+        }
+
+        private static void ProcessFile(string file)
+        {
+            Context.ActorOf(Props.Create(() => new FileProcessorActor())).Tell(new FileProcessorActor.ProcessFile(file));
         }
 
         #region Messaging methods
